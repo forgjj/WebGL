@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>webgl 文字 </title>
+    <link rel="stylesheet" href="css/base.css">
+    <script src="js/jquery-1.12.3.min.js"></script>
+</head>
+<body>
+
+
+</body>
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/OBJLoader.js"></script>
+<script src="js/MTLLoader.js"></script>
+<script src="js/geometry.js"></script>
+
+<script src="js/TextGeometry.js"></script>
+<script src="js/TextGeometry.tests.js"></script>
+<!--<script src="js/DDSLoader.js"></script>-->
+<script>
+
+    var scene, camera, renderer, orbitControls;
+    var sc = 2;
+
+
+    var init = function () {
+        scene = new THREE.Scene();// 实例化场景
+        // 相机
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(100, 100, 100);//相机位置
+        camera.lookAt(new THREE.Vector3(0, 0, 0));// 相机指向原点
+        scene.add(camera); // 添加相机
+
+        // 渲染
+        renderer = new THREE.WebGLRenderer({alpha: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);// 大小
+        renderer.setClearColor('rgb(250,250,250)', 1.0);// 背景色
+        document.body.appendChild(renderer.domElement);// 添加到页面中
+
+        // 添加光源
+        var ambientLight = new THREE.AmbientLight(0x606060);
+        scene.add(ambientLight);
+        var directionalLight = new THREE.DirectionalLight(0xffffff);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+
+        controls();
+        ObjModle();
+        clicks();
+        Btn();
+        text();
+        render();
+    }();
+
+    function render() {
+        renderer.render(scene, camera);
+    }
+
+    // OBJ 模型
+    function ObjModle() {
+        //加载贴图
+        var imgs = ['model/go/ba.png', 'model/go/Gohan.png', 'model/go/eyes.png', 'model/go/face.png', 'model/go/clothes1.png', 'model/go/clothes2.png'];
+        var mtlloader = new THREE.MTLLoader();
+        var textureLoader = new THREE.TextureLoader(); // 实例化贴图
+
+        var texture = []; //加载贴图
+        for (let i = 0; i < imgs.length; i++) {
+            texture.push(textureLoader.load(imgs[i]));
+        }
+        var loader = new THREE.OBJLoader();
+        var material;
+        loader.load('model/go/Gohan.obj', function (object) {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
+                    for (let i = 0; i < texture.length; i++) {
+                        material = new THREE.MeshPhongMaterial({
+                            map: texture[i]
+                        });
+                        material.map.wrapS = true;
+                    }
+                    child.material.map = material.map;
+                }
+            });
+            object.scale.set(sc, sc, sc);
+            object.position.x = 0;
+            object.position.y = 0;
+            object.position.z = 0;
+            scene.add(object);
+        });
+
+    }
+
+
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+    // 点击
+    window.addEventListener('click', onMouseClick, false);
+
+    function onMouseClick(event) {
+
+        //通过鼠标点击的位置计算出raycaster所需要的点的位置，以屏幕中心为原点，值的范围为-1到1.
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // 通过鼠标点的位置和当前相机的矩阵计算出raycaster
+        raycaster.setFromCamera(mouse, camera);
+        // 获取raycaster直线和所有模型相交的数组集合
+        var intersects = raycaster.intersectObjects(scene.children);
+        console.log(intersects);
+        //将所有的相交的模型的颜色设置为红色，如果只需要将第一个触发事件，那就数组的第一个模型改变颜色即可
+        for (var i = 0; i < intersects.length; i++) {
+            intersects[i].object.material.color.set(0xff0000);
+        }
+    }
+
+    function Btn(){
+        var geometry = new THREE.CubeGeometry(5,5,5);
+        var material = new THREE.MeshBasicMaterial({color:0x3effff});//物体颜色
+        var Mesh = new THREE.Mesh(geometry,material);// 创建网格对象
+        Mesh.position.set(10,20,0);
+
+        scene.add(Mesh);// 添加到场景中
+    }
+
+
+    // 添加控制器;
+    function controls() {
+        orbitControls = new THREE.OrbitControls(camera);
+        orbitControls.addEventListener('change', render);
+        animate();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            render()
+        }
+    }
+
+    var canvas = document.getElementsByTagName('canvas')[0];
+    console.log(canvas);
+
+    function text(){
+        var text = 'hello word';
+        var text3d = new THREE.TextGeometry(text,{
+            size:40,height:10,curveSegments:2
+        });
+        text3d.computeBoundingBox();
+        var textBox = new THREE.Mesh(text3d,new THREE.MeshBasicMaterial({color:0xfd7b01}));
+        scene.add(textBox);
+    }
+</script>
+
+</html>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>webgl long </title>
+    <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+
+
+</body>
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/OBJLoader.js"></script>
+<script src="js/MTLLoader.js"></script>
+
+<!--<script src="js/DDSLoader.js"></script>-->
+<script>
+
+    var scene, camera, renderer, orbitControls;
+
+
+    var init = function () {
+        scene = new THREE.Scene();// 实例化场景
+        // 相机
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(100, 200, 300);//相机位置
+        camera.lookAt(scene.position);// 相机指向原点
+        scene.add(camera); // 添加相机
+
+        // 渲染
+        renderer = new THREE.WebGLRenderer({alpha: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);// 大小
+        renderer.setClearColor('rgb(20,30,50)', 1.0);// 背景色
+        document.body.appendChild(renderer.domElement);// 添加到页面中
+
+        // 添加光源
+        var ambientLight = new THREE.AmbientLight(0x606060);
+        scene.add(ambientLight);
+        var directionalLight = new THREE.DirectionalLight(0xffffff);
+        directionalLight.position.set(1, 0.75, 0.5).normalize();
+        scene.add(directionalLight);
+
+
+        // add();
+        controls();
+        ObjModle();
+        render();
+    }();
+
+    function render() {
+        renderer.render(scene, camera);
+    }
+
+    // 方块
+    function add() {
+        var geometry = new THREE.CubeGeometry(100, 100, 100); // 实例化一个物体
+        var material = new THREE.MeshBasicMaterial({color: 0x3e3e3e});//物体颜色
+        var cube = new THREE.Mesh(geometry, material);// 创建网格对象
+        cube.position.set(0, 0, 0);
+        // camera.position.z = 5;
+        scene.add(cube);// 添加到场景中
+
+    }
+
+    // OBJ 模型
+    function ObjModle() {
+        //加载贴图
+
+        // var mtlloader = new THREE.MTLLoader();
+        var textureLoader = new THREE.TextureLoader(); // 实例化贴图
+        // var texture = textureLoader.load('model/long/long.jpg'); //加载贴图
+
+        //加载obj模型
+        var loader = new THREE.OBJLoader();
+
+
+        loader.load('model/long/long.obj', function (object) {
+            /*object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = texture;
+                }
+            });*/
+            object.scale.set(10, 10, 10);
+
+
+            scene.add(object);
+
+        });
+
+    }
+
+
+
+    // 添加控制器;
+    function controls() {
+        orbitControls = new THREE.OrbitControls(camera);
+        orbitControls.addEventListener('change', render);
+        animate();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            render()
+        }
+    }
+</script>
+
+</html>
